@@ -7,3 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - Initial Release.
+
+## [v1.1.0] - 2026-01-26
+
+### Added
+
+- Added `Energie_seit_Anstecken` reading.

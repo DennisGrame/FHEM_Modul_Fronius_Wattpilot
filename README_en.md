@@ -162,6 +162,7 @@ The module provides the following values ("Readings"):
 | `Laden_starten`| Status of manual charging control (Start/Stop). |
 | `Modus` | Current charging mode (Eco/Default/NextTrip). |
 | `Zeit_NextTrip` | Set time for Next Trip (Format hh:mm). |
+| `Energie_seit_Anstecken` | Energy consumed in Wh since the car was connected. |
 
 ## 7. Troubleshooting
 

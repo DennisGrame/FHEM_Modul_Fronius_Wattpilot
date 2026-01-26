@@ -259,6 +259,11 @@ sub Wattpilot_UpdateReadings($$) {
              # Rundung auf 2 Nachkommastellen, Umrechnung Wh -> kWh wenn nötig (Hier Annahme: Rohwert durch 1000)
              readingsBulkUpdate($hash, "EnergyTotal", sprintf("%.2f", $status->{eto} / 1000));
         }
+
+        # Energie seit Anstecken (wh)
+        if (defined $status->{wh}) {
+             readingsBulkUpdate($hash, "Energie_seit_Anstecken", sprintf("%.2f", $status->{wh}));
+        }
         
         # Energie Details (nrg Array)
         if (defined $status->{nrg}) {
@@ -515,6 +520,21 @@ sub Wattpilot_IsDisabled($) {
     <li><code>disable &lt;0|1&gt;</code><br>
         Completely disables the module. 1 = Disabled (Disconnects), 0 = Active.</li>
   </ul>
+  <br>
+  <a name="Wattpilot-readings"></a>
+  <b>Readings</b>
+  <ul>
+    <li><code>Energie_seit_Anstecken</code><br>
+        Energy consumed in Wh since the car was connected.</li>
+    <li><code>EnergyTotal</code><br>
+        Total energy counter in kWh.</li>
+    <li><code>power</code><br>
+        Current total power in Watts.</li>
+    <li><code>Voltage_L1..3</code><br>
+        Voltage on phases 1-3.</li>
+    <li><code>Current_L1..3</code><br>
+        Current on phases 1-3.</li>
+  </ul>
 </ul>
 
 =end html
@@ -565,6 +585,21 @@ sub Wattpilot_IsDisabled($) {
         Standardwert für die Ampereeinstellung (dient primär zur Definition des Slider-Bereichs im Frontend).</li>
     <li><code>disable &lt;0|1&gt;</code><br>
         Deaktiviert das Modul komplett. 1 = Deaktiviert (Trennt Verbindung), 0 = Aktiv.</li>
+  </ul>
+  <br>
+  <a name="Wattpilot-readings"></a>
+  <b>Readings</b>
+  <ul>
+    <li><code>Energie_seit_Anstecken</code><br>
+        Geladene Energie in Wh seit das Auto angesteckt wurde.</li>
+    <li><code>EnergyTotal</code><br>
+        Gesamter Energiezähler in kWh.</li>
+    <li><code>power</code><br>
+        Aktuelle Gesamtleistung in Watt.</li>
+    <li><code>Voltage_L1..3</code><br>
+        Spannung auf den 3 Phasen in Volt.</li>
+    <li><code>Current_L1..3</code><br>
+        Strom auf den 3 Phasen in Ampere.</li>
   </ul>
 </ul>
 
