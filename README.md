@@ -159,7 +159,7 @@ Das Modul stellt folgende Werte ("Readings") zur Verfügung:
 | `Voltage_L1..3` | Spannung auf den 3 Phasen in Volt. |
 | `Current_L1..3` | Strom auf den 3 Phasen in Ampere. |
 | `Strom` | Die aktuell im Wattpilot eingestellte Stromgrenze (Ampere). |
-| `Laden_starten`| Status der manuellen Ladesteuerung (Start/Stop). |
+| `Laden_starten` | Status der manuellen Ladesteuerung (Start/Stop). |
 | `Modus` | Aktueller Lademodus (Eco/Default/NextTrip). |
 | `Zeit_NextTrip` | Eingestellte Uhrzeit für Next Trip (Format hh:mm). |
 | `Energie_seit_Anstecken` | Geladene Energie in Wh seit das Auto angesteckt wurde. |

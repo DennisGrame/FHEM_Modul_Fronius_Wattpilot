@@ -307,14 +307,11 @@ sub Wattpilot_SendAuth($$) {
         hash_class => 'HMACSHA2',
         hash_args => $h_args,
         iterations => 100000,
-        output_len => 256
+        output_len => 24
     );
     
-    # Berechne rohen PBKDF2 Hash
-    my $dk = $pbkdf2_obj->PBKDF2($serial, $password);
-    
-    # Base64-Encoding und auf 32 Bytes kürzen
-    my $password_hash = substr(MIME::Base64::encode_base64($dk, ""), 0, 32);
+    # Berechne PBKDF2 Hash und gib ihn direkt als Base64 (32 Zeichen) zurück
+    my $password_hash = $pbkdf2_obj->PBKDF2_base64($serial, $password);
     
     # Für Session-Signatur (HMAC) speichern
     $hash->{hashed_password} = $password_hash;
