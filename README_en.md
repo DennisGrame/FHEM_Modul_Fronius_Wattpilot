@@ -10,6 +10,7 @@ For the module to work, some additional Perl modules must be installed on the se
 
 * `JSON`
 * `Crypt::PBKDF2`
+* `Crypt::Bcrypt`
 * `Digest::SHA`
 * `MIME::Base64`
 
@@ -22,11 +23,11 @@ sudo apt-get update
 sudo apt-get install libjson-perl libdigest-sha-perl libmime-base64-perl
 ```
 
-For `Crypt::PBKDF2` (often not available as an apt package), it is best to use cpanminus:
+For `Crypt::PBKDF2` and `Crypt::Bcrypt` (often not available as an apt package), it is best to use cpanminus:
 
 ```bash
 sudo apt-get install cpanminus
-sudo cpanm Crypt::PBKDF2
+sudo cpanm Crypt::PBKDF2 Crypt::Bcrypt
 ```
 
 ## 2. Installing the Module
@@ -51,25 +52,37 @@ To integrate the Wallbox into FHEM, create a new "Device".
 ### Syntax
 
 ```text
-define <Name> Wattpilot <IP-Address> <Password> [Serial]
+define <Name> Wattpilot <IP-Address> [Serial]
 ```
 
 * **<Name>**: A name for the device in FHEM (e.g., `wallbox` or `myWattpilot`).
 * **<IP-Address>**: The local IP address of the Wattpilot on the network (e.g., `192.168.178.185`).
-* **<Password>**: The password for the Wattpilot (the same as in the App).
 * **[Serial]** (Optional): The serial number of the box. If omitted, the module attempts to read it automatically.
+
+**Note:** The password is no longer specified in the definition, but set separately using the `set Password` command.
 
 ### Example
 
 Enter this into the FHEM command line:
 
 ```text
-define wallbox Wattpilot 192.168.178.185 mySecretPassword
+define wallbox Wattpilot 192.168.178.185
+set wallbox Password mySecretPassword
 ```
 
 ## 4. Functions & Commands (Control)
 
-Once the device is connected (Status `connected`), you can control it using the `set` command.
+Once the device is defined, you must first set the password:
+
+### Set Password
+
+Stores the password persistently in FHEM (encrypted in the FHEM database, not in the `fhem.cfg`).
+
+```text
+set wallbox Password <YourPassword>
+```
+
+After that, the module connects automatically. Once the status is `connected`, you can control it.
 
 ### Start / Stop Charging
 
@@ -146,15 +159,26 @@ Controls the verbosity of log entries in the FHEM log file.
 * `4`: Logs received data from Wattpilot.
 * `5`: Debugging (lots of text).
 
+### `authHash` (auto, pbkdf2, bcrypt)
+
+Selects the password hashing method.
+
+* `auto` (Default): Automatically selects the method required by the device.
+* `pbkdf2`: Forces PBKDF2 (older models).
+* `bcrypt`: Forces bcrypt (newer Wattpilot Flex models).
+
 ## 6. Readings (Values)
 
 The module provides the following values ("Readings"):
 
 | Reading | Description |
 | :--- | :--- |
-| `state` | Connection status (initialized, connected, auth_failed, disabled). |
+| `state` | Connection status (initialized, connected, auth_failed, password missing, disabled). |
+| `version` | Firmware / protocol version of the device. |
+| `authHashMode` | Authentication method used (pbkdf2 or bcrypt). |
 | `CarState` | Status of the car (Idle, Charging, WaitCar, Complete). |
 | `power` | Current total power in Watts. |
+| `Power_L1..3` | Power on individual phases in Watts. |
 | `EnergyTotal` | Total energy counter in kWh. |
 | `Voltage_L1..3` | Voltage on the 3 phases in Volts. |
 | `Current_L1..3` | Current on the 3 phases in Amperes. |
@@ -170,6 +194,7 @@ The module provides the following values ("Readings"):
   * Check the IP address. Can the FHEM server ping the IP?
   * Are FHEM and Wattpilot on the same network? (Often issues with Guest networks).
 * **Log shows "Authentication Failed"**:
-  * Check the password in the definition (`defmod wallbox ...`).
+  * Check the password with `set <Name> Password ...`.
+  * If necessary, try setting the `authHash` attribute explicitly to `pbkdf2` or `bcrypt`.
 * **Perl Error in Log (`Can't locate Crypt/PBKDF2.pm`)**:
   * The prerequisites (Step 1) were not met. Install the missing Perl module.

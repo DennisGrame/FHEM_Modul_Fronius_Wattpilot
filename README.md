@@ -10,6 +10,7 @@ Damit das Modul funktioniert, müssen auf dem Server (Raspberry Pi, PC, etc.), a
 
 * `JSON`
 * `Crypt::PBKDF2`
+* `Crypt::Bcrypt`
 * `Digest::SHA`
 * `MIME::Base64`
 
@@ -22,11 +23,11 @@ sudo apt-get update
 sudo apt-get install libjson-perl libdigest-sha-perl libmime-base64-perl
 ```
 
-Für `Crypt::PBKDF2` (oft nicht als apt-Paket verfügbar) nutzen Sie am besten cpanminus:
+Für `Crypt::PBKDF2` und `Crypt::Bcrypt` (oft nicht als apt-Paket verfügbar) nutzen Sie am besten cpanminus:
 
 ```bash
 sudo apt-get install cpanminus
-sudo cpanm Crypt::PBKDF2
+sudo cpanm Crypt::PBKDF2 Crypt::Bcrypt
 ```
 
 ## 2. Installation des Moduls
@@ -51,25 +52,37 @@ Um die Wallbox in FHEM einzubinden, legen Sie ein neues "Device" an.
 ### Syntax
 
 ```text
-define <Name> Wattpilot <IP-Adresse> <Passwort> [Seriennummer]
+define <Name> Wattpilot <IP-Adresse> [Seriennummer]
 ```
 
 * **<Name>**: Ein Name für das Gerät in FHEM (z.B. `wallbox` oder `meinWattpilot`).
 * **<IP-Adresse>**: Die lokale IP-Adresse des Wattpilot im Netzwerk (z.B. `192.168.178.185`).
-* **<Passwort>**: Das Passwort für den Wattpilot (das gleiche wie in der App).
 * **[Seriennummer]** (Optional): Die Seriennummer der Box. Wenn weggelassen, versucht das Modul sie automatisch auszulesen.
+
+**Hinweis:** Das Passwort wird nicht mehr in der Definition angegeben, sondern separat mit dem `set Password` Befehl gesetzt.
 
 ### Beispiel
 
 Geben Sie dies in die FHEM Kommandozeile ein:
 
 ```text
-define wallbox Wattpilot 192.168.178.185 meinGeheimesPasswort
+define wallbox Wattpilot 192.168.178.185
+set wallbox Password meinGeheimesPasswort
 ```
 
 ## 4. Funktionen & Befehle (Steuerung)
 
-Sobald das Gerät verbunden ist (Status `connected`), können Sie es mit dem `set` Befehl steuern.
+Sobald das Gerät definiert ist, müssen Sie zuerst das Passwort setzen:
+
+### Passwort setzen
+
+Speichert das Passwort persistent in FHEM (verschlüsselt in der FHEM-Datenbank, nicht in der `fhem.cfg`).
+
+```text
+set wallbox Password <DeinPasswort>
+```
+
+Danach verbindet sich das Modul automatisch. Sobald der Status `connected` ist, können Sie es steuern.
 
 ### Ladung Starten / Stoppen
 
@@ -146,15 +159,26 @@ Steuert die Ausführlichkeit der Log-Einträge im FHEM Logfile.
 * `4`: Protokolliert empfangene Daten vom Wattpilot.
 * `5`: Debugging (sehr viel Text).
 
+### `authHash` (auto, pbkdf2, bcrypt)
+
+Wählt das Verfahren für die Passwort-Verschlüsselung.
+
+* `auto` (Standard): Wählt automatisch das vom Gerät geforderte Verfahren.
+* `pbkdf2`: Erzwingt PBKDF2 (ältere Modelle).
+* `bcrypt`: Erzwingt bcrypt (neuere Wattpilot Flex Modelle).
+
 ## 6. Readings (Messwerte)
 
 Das Modul stellt folgende Werte ("Readings") zur Verfügung:
 
 | Reading | Beschreibung |
 | :--- | :--- |
-| `state` | Verbindungsstatus (initialized, connected, auth_failed, disabled). |
+| `state` | Verbindungsstatus (initialized, connected, auth_failed, password missing, disabled). |
+| `version` | Firmware-/Protokollversion des Geräts. |
+| `authHashMode` | Verwendetes Authentifizierungsverfahren (pbkdf2 oder bcrypt). |
 | `CarState` | Status des Autos (Idle, Charging, WaitCar, Complete). |
 | `power` | Aktuelle Gesamtleistung in Watt. |
+| `Power_L1..3` | Leistung auf den einzelnen Phasen in Watt. |
 | `EnergyTotal` | Gesamter Energiezähler in kWh. |
 | `Voltage_L1..3` | Spannung auf den 3 Phasen in Volt. |
 | `Current_L1..3` | Strom auf den 3 Phasen in Ampere. |
@@ -170,6 +194,7 @@ Das Modul stellt folgende Werte ("Readings") zur Verfügung:
   * Prüfen Sie die IP-Adresse. Kann der FHEM-Server die IP anpingen?
   * Sind FHEM und Wattpilot im gleichen Netzwerk? (Oft Probleme bei Gast-Netzwerken).
 * **Log zeigt "Authentication Failed"**:
-  * Prüfen Sie das Passwort in der Definition (`defmod wallbox ...`).
+  * Prüfen Sie das Passwort mit `set <Name> Password ...`.
+  * Versuchen Sie ggf. das Attribut `authHash` fest auf `pbkdf2` oder `bcrypt` zu setzen.
 * **Perl-Fehler im Log (`Can't locate Crypt/PBKDF2.pm`)**:
   * Die Voraussetzungen (Schritt 1) wurden nicht erfüllt. Installieren Sie das fehlende Perl-Modul nach.
