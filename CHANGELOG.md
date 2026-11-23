@@ -2,6 +2,20 @@
 
 Alle nennenswerten Änderungen an diesem Projekt werden in dieser Datei dokumentiert.
 
+## [Unreleased]
+
+### Hinzugefügt
+
+- **NextTrip-Ladeenergie:** Neuer Befehl `set <name> Energie_NextTrip <kWh>` (0,1–200 kWh). Der Wert wird in Wh umgerechnet und als API-Parameter `fte` übertragen.
+- **NextTrip-Reading:** `Energie_NextTrip` zeigt die vom Wattpilot über `fte` gemeldete Energiemenge in kWh an.
+- **Fahrzeugverbrauch:** `Verbrauch_100km` zeigt den in der Wattpilot-App hinterlegten Verbrauch aus `cco` in kWh/100 km an.
+- **Dokumentation:** Deutsche und englische README sowie API-Zuordnung um NextTrip-Funktionen ergänzt.
+
+### Hinweise
+
+- `Zeit_NextTrip` (`ftt`) und die Moduswahl (`lmo`) waren bereits vorhanden; diese Einträge sind keine neuen Funktionen.
+- Für `Verbrauch_100km` ist kein eigener `set`-Befehl implementiert.
+
 ## [v1.2.0] - 2026-04-24
 
 ### Hinzugefügt

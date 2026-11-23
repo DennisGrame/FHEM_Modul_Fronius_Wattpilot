@@ -252,6 +252,16 @@ sub Wattpilot_UpdateReadings($$) {
         readingsBulkUpdate($hash, "Zeit_NextTrip", sprintf("%02d:%02d", $h, $m));
     }
     
+    # NextTrip-Ladeenergie (fte) in Wh -> kWh
+    if (defined $status->{fte} && $status->{fte} =~ /^\d+(?:\.\d+)?$/) {
+        readingsBulkUpdate($hash, "Energie_NextTrip", sprintf("%.2f", $status->{fte} / 1000));
+    }
+
+    # Fahrzeugverbrauch (cco) in kWh/100 km; wird in der Wattpilot-App gepflegt
+    if (defined $status->{cco} && $status->{cco} =~ /^\d+(?:\.\d+)?$/) {
+        readingsBulkUpdate($hash, "Verbrauch_100km", sprintf("%.2f", $status->{cco}));
+    }
+
     # Stromstärke (amp) - Sollte immer sofort aktualisiert werden
     if (defined $status->{amp}) {
         readingsBulkUpdate($hash, "Strom", $status->{amp});
@@ -459,6 +469,12 @@ sub Wattpilot_Set($@) {
         my %mode_map = ( 'Default' => 3, 'Eco' => 4, 'NextTrip' => 5 );
         return "Unknown mode $val" if (!exists $mode_map{$val});
         Wattpilot_SendSecure($hash, "lmo", $mode_map{$val});
+    } elsif ($cmd eq 'Energie_NextTrip') {
+        # NextTrip-Ladeenergie in kWh; Wattpilot erwartet fte in Wh.
+        # Allgemeines Modul: keine fahrzeugspezifische Kapazitaetsgrenze.
+        return "Usage: set $name Energie_NextTrip <0.1-200 kWh>"
+            if (!defined $val || $val !~ /^\d+(?:\.\d+)?$/ || $val < 0.1 || $val > 200);
+        Wattpilot_SendSecure($hash, "fte", int($val * 1000 + 0.5));
     } elsif ($cmd eq 'Zeit_NextTrip') {
         # 'ftt' Befehl für NextTrip Zeit, Format hh:mm
         # API erwartet Sekunden ab Mitternacht
@@ -488,7 +504,7 @@ sub Wattpilot_Set($@) {
 		return undef;
 	} 
 	else {
-        return "Unknown argument $cmd, choose one of Password Laden_starten:Start,Stop Strom:slider,6,1,32 Modus:Default,Eco,NextTrip Zeit_NextTrip";
+        return "Unknown argument $cmd, choose one of Password Laden_starten:Start,Stop Strom:slider,6,1,32 Modus:Default,Eco,NextTrip Zeit_NextTrip Energie_NextTrip";
     }
     
     return undef;
@@ -707,6 +723,9 @@ sub Wattpilot_DeleteStoredSecrets {
 
     <li><code>set &lt;name&gt; Zeit_NextTrip &lt;hh:mm&gt;</code><br>
         Sets the planned departure time for NextTrip mode. Internally this is converted to seconds after midnight.</li>
+
+    <li><code>set &lt;name&gt; Energie_NextTrip &lt;kWh&gt;</code><br>
+        Sets NextTrip target energy (0.1 to 200 kWh). The value is sent as <code>fte</code> in Wh.</li>
   </ul>
   <br>
 
@@ -769,6 +788,12 @@ sub Wattpilot_DeleteStoredSecrets {
 
     <li><code>Zeit_NextTrip</code><br>
         Planned departure time in <code>hh:mm</code>.</li>
+
+    <li><code>Energie_NextTrip</code><br>
+        NextTrip target energy in kWh (received as <code>fte</code> in Wh).</li>
+
+    <li><code>Verbrauch_100km</code><br>
+        Vehicle consumption in kWh/100 km as configured in the Wattpilot app (<code>cco</code>).</li>
 
     <li><code>Energie_seit_Anstecken</code><br>
         Energy charged since the vehicle was plugged in.</li>
@@ -837,6 +862,9 @@ sub Wattpilot_DeleteStoredSecrets {
 
     <li><code>set &lt;name&gt; Zeit_NextTrip &lt;hh:mm&gt;</code><br>
         Setzt die geplante Abfahrtszeit für den Modus NextTrip. Intern wird der Wert in Sekunden ab Mitternacht umgerechnet.</li>
+
+    <li><code>set &lt;name&gt; Energie_NextTrip &lt;kWh&gt;</code><br>
+        Setzt die gewuenschte NextTrip-Ladeenergie (0,1 bis 200 kWh); intern als <code>fte</code> in Wh uebertragen.</li>
   </ul>
   <br>
 
@@ -899,6 +927,12 @@ sub Wattpilot_DeleteStoredSecrets {
 
     <li><code>Zeit_NextTrip</code><br>
         Geplante Abfahrtszeit im Format <code>hh:mm</code>.</li>
+
+    <li><code>Energie_NextTrip</code><br>
+        NextTrip-Ladeenergie in kWh (aus <code>fte</code> in Wh).</li>
+
+    <li><code>Verbrauch_100km</code><br>
+        In der Wattpilot-App hinterlegter Fahrzeugverbrauch in kWh/100 km (<code>cco</code>).</li>
 
     <li><code>Energie_seit_Anstecken</code><br>
         Geladene Energie in Wh seit dem Anstecken des Fahrzeugs.</li>

@@ -123,6 +123,28 @@ set wallbox Zeit_NextTrip 07:30
 
 Format: `hh:mm`
 
+### NextTrip-Ladeenergie einstellen
+
+Die gewünschte Energiemenge für die nächste Fahrt kann direkt in **kWh** gesetzt werden:
+
+```text
+set wallbox Energie_NextTrip 5.0
+```
+
+Zulässig sind Werte von **0,1 bis 200 kWh** (Eingabe mit Dezimalpunkt). Das Modul wandelt den Wert in Wh um und sendet ihn als Wattpilot-API-Parameter `fte`. Der zulässige Bereich ist eine Modulvalidierung, **keine fahrzeugspezifische Batteriegrenze**. Die tatsächliche Umsetzung hängt vom Wattpilot und den Einstellungen des Fahrzeugs ab.
+
+### NextTrip-Einstellungen auslesen
+
+Die NextTrip-Parameter werden als reguläre FHEM-Readings bereitgestellt und können beispielsweise so abgefragt werden:
+
+```text
+getreading wallbox Energie_NextTrip
+getreading wallbox Zeit_NextTrip
+getreading wallbox Verbrauch_100km
+```
+
+Der Verbrauchswert stammt aus der Wattpilot-App; das Modul bietet für `Verbrauch_100km` derzeit keinen eigenen `set`-Befehl. Die ungefähre Reichweite lässt sich bei bekanntem Verbrauch wie folgt berechnen: `Energie_NextTrip / Verbrauch_100km * 100` (km). Dies ist eine rechnerische Schätzung, keine vom Fahrzeug gemeldete Reichweite.
+
 ## 5. Konfiguration (Attribute)
 
 Sie können das Verhalten des Moduls über "Attribute" anpassen.
@@ -186,6 +208,8 @@ Das Modul stellt folgende Werte ("Readings") zur Verfügung:
 | `Laden_starten` | Status der manuellen Ladesteuerung (Start/Stop). |
 | `Modus` | Aktueller Lademodus (Eco/Default/NextTrip). |
 | `Zeit_NextTrip` | Eingestellte Uhrzeit für Next Trip (Format hh:mm). |
+| `Energie_NextTrip` | NextTrip-Ladeenergiemenge in kWh (Wattpilot-Parameter `fte` in Wh; auf zwei Nachkommastellen ausgegeben). |
+| `Verbrauch_100km` | In der Wattpilot-App hinterlegter Fahrzeugverbrauch in kWh/100 km (Parameter `cco`; auf zwei Nachkommastellen ausgegeben). |
 | `Energie_seit_Anstecken` | Geladene Energie in Wh seit das Auto angesteckt wurde. |
 
 ## 7. Fehlerbehebung

@@ -123,6 +123,28 @@ set wallbox Zeit_NextTrip 07:30
 
 Format: `hh:mm`
 
+### Set NextTrip Energy
+
+Set the minimum energy target for the next trip in **kWh**:
+
+```text
+set wallbox Energie_NextTrip 5.0
+```
+
+Accepted values are **0.1 to 200 kWh** (use a decimal point). The module converts kWh to Wh and sends the Wattpilot API field `fte`. This range is input validation in the module, **not a vehicle-specific battery capacity limit**. Actual charging behavior depends on the charger and vehicle configuration.
+
+### Read NextTrip Settings
+
+These values are available as regular FHEM readings:
+
+```text
+getreading wallbox Energie_NextTrip
+getreading wallbox Zeit_NextTrip
+getreading wallbox Verbrauch_100km
+```
+
+`Verbrauch_100km` is configured in the Wattpilot app; this module does not currently provide a corresponding `set` command. An approximate range can be calculated as `Energie_NextTrip / Verbrauch_100km * 100` (km), provided consumption is positive. This is a calculated estimate, not a range reported by the car.
+
 ## 5. Configuration (Attributes)
 
 You can adjust the module's behavior via "Attributes".
@@ -186,6 +208,8 @@ The module provides the following values ("Readings"):
 | `Laden_starten` | Status of manual charging control (Start/Stop). |
 | `Modus` | Current charging mode (Eco/Default/NextTrip). |
 | `Zeit_NextTrip` | Set time for Next Trip (Format hh:mm). |
+| `Energie_NextTrip` | NextTrip energy target in kWh (Wattpilot parameter `fte` in Wh; displayed with two decimals). |
+| `Verbrauch_100km` | Vehicle consumption configured in the Wattpilot app, in kWh/100 km (parameter `cco`; displayed with two decimals). |
 | `Energie_seit_Anstecken` | Energy consumed in Wh since the car was connected. |
 
 ## 7. Troubleshooting

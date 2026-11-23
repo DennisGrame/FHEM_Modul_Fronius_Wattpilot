@@ -335,3 +335,17 @@ cardIndex + 1 (1: 0. card, 2: 1. card, ...)
 | `wss`<br>`wifiSsid` | WIFI SSID |  | `unknown`<br>- |  | :white_large_square: |  |  |
 | `wst`<br>`wifiStaStatus` | WIFI STA Status | R | `integer`<br>`uint8` | Status | :heavy_check_mark: | WiFi STA status (IDLE_STATUS=0, NO_SSID_AVAIL=1, SCAN_COMPLETED=2, CONNECTED=3, CONNECT_FAILED=4, CONNECTION_LOST=5, DISCONNECTED=6, CONNECTING=8, DISCONNECTING=9, NO_SHIELD=10 (for compatibility with WiFi Shield library)) | `3` |
 | `zfo`<br>`zeroFeedinOffset` | Zero Feedin Offset | R/W | `float`<br>`float` | Config | :white_large_square: | zeroFeedinOffset in W | `200` |
+
+
+## FHEM Mapping: NextTrip (72_Wattpilot.pm)
+
+The raw WebSocket API uses different names and units from the FHEM readings and commands. This table documents the mapping **implemented in this repository** (not additional API properties).
+
+| Wattpilot property | FHEM reading | FHEM command | Conversion / notes |
+| :--- | :--- | :--- | :--- |
+| `ftt` (`froniusTripTime`) | `Zeit_NextTrip` (`HH:MM`) | `set <name> Zeit_NextTrip HH:MM` | API stores seconds after local midnight; FHEM converts in both directions. |
+| `fte` (`froniusTripEnergy`) | `Energie_NextTrip` (kWh, two decimals) | `set <name> Energie_NextTrip <kWh>` | API stores Wh; FHEM divides by 1000 on read and multiplies by 1000 (rounded to integer Wh) on write. Module accepts 0.1–200 kWh. |
+| `cco` (`carConsumption`) | `Verbrauch_100km` (kWh/100 km, two decimals) | Not implemented | Read from charger; typically configured in the Wattpilot app. |
+| `lmo` (charging mode) | `Modus` (`Default`, `Eco`, `NextTrip`) | `set <name> Modus <Default|Eco|NextTrip>` | Mapped to API values 3, 4 and 5 respectively. |
+
+The FHEM readings reflect values **reported by the charger** via `fullStatus` or `deltaStatus`; a `set` command sends the requested value but does not itself guarantee that the device accepted or applied it. The `cco` value can be used to estimate distance (`kWh / (kWh/100 km) × 100`) but is not a vehicle-reported range.
